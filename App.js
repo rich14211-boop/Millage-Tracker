@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 // Importing this registers the background location task. It has to happen at
 // startup, before any screen mounts, or iOS won't find the task when it wakes
@@ -21,24 +22,26 @@ export default function App() {
   const [tab, setTab] = useState('status');
 
   return (
-    <SafeAreaView style={s.root}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaProvider>
+      <SafeAreaView style={s.root}>
+        <StatusBar barStyle="dark-content" />
 
-      <View style={s.body}>
-        {tab === 'status' && <StatusScreen onReviewPress={() => setTab('review')} />}
-        {tab === 'review' && <ReviewScreen />}
-        {tab === 'export' && <ExportScreen />}
-      </View>
+        <View style={s.body}>
+          {tab === 'status' && <StatusScreen onReviewPress={() => setTab('review')} />}
+          {tab === 'review' && <ReviewScreen />}
+          {tab === 'export' && <ExportScreen />}
+        </View>
 
-      <View style={s.tabs}>
-        {TABS.map((item) => (
-          <Pressable key={item.key} style={s.tab} onPress={() => setTab(item.key)}>
-            <Text style={[s.tabLabel, tab === item.key && s.tabLabelOn]}>{item.label}</Text>
-            {tab === item.key && <View style={s.marker} />}
-          </Pressable>
-        ))}
-      </View>
-    </SafeAreaView>
+        <View style={s.tabs}>
+          {TABS.map((item) => (
+            <Pressable key={item.key} style={s.tab} onPress={() => setTab(item.key)}>
+              <Text style={[s.tabLabel, tab === item.key && s.tabLabelOn]}>{item.label}</Text>
+              {tab === item.key && <View style={s.marker} />}
+            </Pressable>
+          ))}
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
