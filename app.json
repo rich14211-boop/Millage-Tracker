@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Mileage",
+    "slug": "mileage-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yourname.mileage",
+      "infoPlist": {
+        "UIBackgroundModes": ["location"],
+        "NSLocationWhenInUseUsageDescription": "Mileage records the distance you drive so you can log trips for expenses.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Mileage needs Always access so it can detect the start and end of a drive while the app is closed. Without it, trips are missed."
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Mileage needs Always access so it can detect the start and end of a drive while the app is closed.",
+          "isIosBackgroundLocationEnabled": true
+        }
+      ],
+      "expo-sqlite"
+    ]
+  }
+}
