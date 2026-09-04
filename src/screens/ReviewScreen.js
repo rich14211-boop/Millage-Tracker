@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   FlatList,
+  Linking,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -11,8 +12,9 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 
-import { classifyTrip, deleteTrip, setTripLabels, taggedTrips, untaggedTrips } from '../db';
+import { classifyTrip, deleteTrip, pointsForTrip, setTripLabels, taggedTrips, untaggedTrips } from '../db';
 import { formatDuration, formatMiles } from '../geo';
+import TripMap from '../TripMap';
 import { c, t } from '../theme';
 
 const labelFor = (place) => {
@@ -44,7 +46,20 @@ async function backfillLabels(trips, onDone) {
 
 function TripCard({ trip, onChanged }) {
   const [purpose, setPurpose] = useState(trip.purpose ?? '');
+  const [showMap, setShowMap] = useState(false);
+  const [route, setRoute] = useState(null);
   const started = new Date(trip.started_at);
+  const hasGeo = trip.start_lat != null;
+
+  useEffect(() => {
+    if (showMap && route == null) pointsForTrip(trip.id).then(setRoute);
+  }, [showMap, route, trip.id]);
+
+  const openInMaps = () => {
+    const from = `${trip.start_lat},${trip.start_lon}`;
+    const to = trip.end_lat != null ? `${trip.end_lat},${trip.end_lon}` : from;
+    Linking.openURL(`http://maps.apple.com/?saddr=${from}&daddr=${to}&dirflg=d`);
+  };
 
   const choose = (category) => classifyTrip(trip.id, category, purpose.trim() || null).then(onChanged);
 
@@ -80,6 +95,30 @@ function TripCard({ trip, onChanged }) {
         <Text style={[t.meta, { marginTop: 8 }]}>
           {trip.start_label ?? 'Unknown'} → {trip.end_label ?? 'Unknown'}
         </Text>
+      )}
+
+      {hasGeo && (
+        <>
+          <Pressable style={s.mapToggle} onPress={() => setShowMap((v) => !v)}>
+            <Text style={[t.meta, { fontWeight: '600', color: c.business }]}>
+              {showMap ? 'Hide route' : 'Show route'}
+            </Text>
+          </Pressable>
+
+          {showMap && (
+            <View style={{ gap: 8 }}>
+              <TripMap
+                points={route ?? []}
+                start={{ lat: trip.start_lat, lon: trip.start_lon }}
+                end={trip.end_lat != null ? { lat: trip.end_lat, lon: trip.end_lon } : undefined}
+                interactive={false}
+              />
+              <Pressable style={s.mapsLink} onPress={openInMaps}>
+                <Text style={[s.btnText, { color: c.ink }]}>Open in Maps</Text>
+              </Pressable>
+            </View>
+          )}
+        </>
       )}
 
       <TextInput
@@ -171,6 +210,14 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: c.bg,
     borderRadius: 9,
+  },
+  mapToggle: { marginTop: 10, alignSelf: 'flex-start' },
+  mapsLink: {
+    paddingVertical: 10,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: c.hairline,
+    alignItems: 'center',
   },
   actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
   btn: {

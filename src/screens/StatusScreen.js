@@ -1,21 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
-import { activeTrip, untaggedCount } from '../db';
+import { activeTrip, pointsForTrip, untaggedCount } from '../db';
 import { formatDuration, formatMiles } from '../geo';
 import { endCurrentTrip, isTracking, reconcile, startTracking, stopTracking } from '../tracking';
+import TripMap from '../TripMap';
 import { c, t } from '../theme';
 
 export default function StatusScreen({ onReviewPress }) {
   const [tracking, setTracking] = useState(false);
   const [trip, setTrip] = useState(null);
+  const [route, setRoute] = useState([]);
   const [pending, setPending] = useState(0);
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     await reconcile();
     setTracking(await isTracking());
-    setTrip(await activeTrip());
+    const active = await activeTrip();
+    setTrip(active);
+    setRoute(active ? await pointsForTrip(active.id) : []);
     setPending(await untaggedCount());
   }, []);
 
@@ -65,6 +69,16 @@ export default function StatusScreen({ onReviewPress }) {
             </View>
             <Text style={t.odometer}>{formatMiles(trip.distance_meters)}</Text>
             <Text style={t.meta}>miles · {formatDuration(Date.now() - trip.started_at)} so far</Text>
+
+            {trip.start_lat != null && (
+              <TripMap
+                points={route}
+                start={{ lat: trip.start_lat, lon: trip.start_lon }}
+                showUser
+                interactive={false}
+                style={{ marginTop: 18 }}
+              />
+            )}
 
             <Pressable style={s.endButton} onPress={() => endCurrentTrip().then(refresh)}>
               <Text style={s.endButtonText}>End trip now</Text>

@@ -40,6 +40,10 @@ export const activeTrip = () =>
 export const lastPoint = (tripId) =>
   db.getFirstAsync(`SELECT * FROM points WHERE trip_id = ? ORDER BY ts DESC LIMIT 1`, tripId);
 
+/** Every recorded fix for a trip, oldest first — the trail drawn on the map. */
+export const pointsForTrip = (tripId) =>
+  db.getAllAsync(`SELECT lat, lon, ts FROM points WHERE trip_id = ? ORDER BY ts ASC`, tripId);
+
 export const untaggedTrips = () =>
   db.getAllAsync(
     `SELECT * FROM trips

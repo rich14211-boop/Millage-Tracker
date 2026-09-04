@@ -23,7 +23,15 @@
           "isIosBackgroundLocationEnabled": true
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ]
     ]
   }
 }
